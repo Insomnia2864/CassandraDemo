@@ -1,6 +1,8 @@
 package com.example.cassandrademo.configurations.security;
 
 import com.example.cassandrademo.auth.ApplicationUserDetailsService;
+import com.example.cassandrademo.jwt.JwtTokenVerifierFilter;
+import com.example.cassandrademo.jwt.JwtUserNameAndPasswordAuthenticationFilter;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,6 +14,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -28,15 +31,14 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilter(new JwtUserNameAndPasswordAuthenticationFilter(authenticationManager()))
+                .addFilterAfter(new JwtTokenVerifierFilter(), JwtUserNameAndPasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers("/", "css/*", "js/*").permitAll()
+                .antMatchers("/", "css/*", "js/*", "/actuator/health").permitAll()
                 .anyRequest()
-                .authenticated()
-                .and()
-                .formLogin().loginPage("/login").permitAll()
-                .defaultSuccessUrl("/success", true)
-                .and()
-                .logout().logoutUrl("/logout").logoutSuccessUrl("/").clearAuthentication(true).invalidateHttpSession(true).deleteCookies("JSESSIONID");
+                .authenticated();
     }
 
     @Override
