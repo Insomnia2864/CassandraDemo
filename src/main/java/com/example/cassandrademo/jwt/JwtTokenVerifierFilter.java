@@ -1,10 +1,14 @@
 package com.example.cassandrademo.jwt;
 
+import com.example.cassandrademo.properties.JwtApplicationProperties;
 import com.google.common.base.Strings;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,7 +27,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JwtTokenVerifierFilter extends OncePerRequestFilter {
+
+    JwtApplicationProperties properties = new JwtApplicationProperties();
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest,
@@ -35,9 +43,8 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
             return;
         }
         try {
-            String key = "MassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocks";
             Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(Keys.hmacShaKeyFor(key.getBytes()))
+                    .setSigningKey(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()))
                     .build()
                     .parseClaimsJws(token);
 

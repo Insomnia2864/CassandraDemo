@@ -1,12 +1,12 @@
 package com.example.cassandrademo.jwt;
 
+import com.example.cassandrademo.properties.JwtApplicationProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,11 +25,8 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtUserNameAndPasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    //@Value(value = "${jwt.expiration-time-in-weeks:4}") TODO: doesnt work, WTF?
-    final long expirationTimeInWeeks = 4;
-
     final AuthenticationManager authenticationManager;
-
+    final JwtApplicationProperties properties = new JwtApplicationProperties();
     final ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -55,14 +52,12 @@ public class JwtUserNameAndPasswordAuthenticationFilter extends UsernamePassword
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
-
-        String key = "MassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocksMassiveCocks";  // must be generated in runtime, must be very secured => long
         String token = Jwts.builder()
                 .setSubject(authResult.getName())
                 .claim("authorities", authResult.getAuthorities())
                 .setIssuedAt(new Date())
-                .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(expirationTimeInWeeks)))
-                .signWith(Keys.hmacShaKeyFor(key.getBytes()))
+                .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(properties.getExpirationTimeInWeeks())))
+                .signWith(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()))
                 .compact();
 
         response.addHeader("Authorization", token);
