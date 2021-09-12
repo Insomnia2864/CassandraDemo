@@ -35,6 +35,8 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .and()
                 .formLogin().loginPage("/login").permitAll()
                 .defaultSuccessUrl("/success", true)
+                .usernameParameter("username")
+                .passwordParameter("password")
                 .and()
                 .logout().logoutUrl("/logout").logoutSuccessUrl("/").clearAuthentication(true).invalidateHttpSession(true).deleteCookies("JSESSIONID");
     }
